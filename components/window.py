@@ -44,11 +44,14 @@ class VentanaApp(ft.Container):
             border_radius=ft.border_radius.only(top_left=10, top_right=10),
         )
 
+        # Asegurar que el contenido pueda expandirse en el Column
+        contenido.expand = True
+        
         # Estructura interna: Barra + Contenido
         self.content = ft.Column(
             controls=[
                 self.barra_titulo,
-                ft.Container(content=contenido, padding=15, expand=True),
+                contenido,
             ],
             spacing=0,
         )

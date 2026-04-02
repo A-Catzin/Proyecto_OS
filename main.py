@@ -179,7 +179,7 @@ def main(page: ft.Page):
             def animar_hover(es_hover):
                 pasos = 10
                 opacidad_inicial = contenedor_icono.opacity
-                escala_inicial = getattr(contenedor_icono, 'scale', 1.0)
+                escala_inicial = contenedor_icono.scale if contenedor_icono.scale is not None else 1.0
                 
                 if es_hover:
                     opacidad_final = 1.0
