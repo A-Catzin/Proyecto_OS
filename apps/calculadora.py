@@ -2,7 +2,7 @@ import flet as ft
 
 class CalculadoraApp(ft.Container):
     """
-    Calculadora funcional con interfaz moderna.
+    Calculadora.
     Soporta operaciones básicas: +, -, *, /
     """
     
@@ -24,7 +24,7 @@ class CalculadoraApp(ft.Container):
             border_color=ft.Colors.BLUE_400,
             bgcolor=ft.Colors.GREY_900,
             color=ft.Colors.WHITE,
-            height=80,
+            height=90,
         )
         
         # Construir la interfaz
