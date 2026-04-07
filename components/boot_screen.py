@@ -105,11 +105,6 @@ class BootScreen(ft.Container):
                 if i % 15 == 0 and self.indice_mensaje < len(self.mensajes_boot):
                     self.texto_estado.value = self.mensajes_boot[self.indice_mensaje]
                     self.indice_mensaje += 1
-                
-                try:
-                    self._page.update()
-                except:
-                    break
             
             # Esperar un momento antes de completar
             time.sleep(0.5)

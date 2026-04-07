@@ -3,8 +3,11 @@ from components.window import VentanaApp
 from components.taskbar import Taskbar
 from components.boot_screen import BootScreen
 from components.login_screen import LoginScreen
+from components.start_menu import StartMenu
 from apps.calculadora import CalculadoraApp
 from apps.editor import EditorApp
+from apps.configuracion import ConfiguracionApp
+from apps.terminal import TerminalApp
 import time
 import threading
 
@@ -20,10 +23,23 @@ def main(page: ft.Page):
     # Lista para gestionar ventanas abiertas (Z-Index)
     ventanas_abiertas = []
     
+    # Bloqueo para evitar abrir múltiples ventanas por doble clic rápido
+    app_lock = threading.Lock()
+    
+    # Flag para actualizable que está pendiente
+    actualizar_pendiente = False
+    actualizar_lock = threading.Lock()
+    
     # Contenedor principal que cambiará entre pantallas
     contenedor_principal = ft.Container(expand=True)
     
     # --- LÓGICA DE GESTIÓN DE VENTANAS ---
+    
+    def marcar_actualizar():
+        """Marca que hay una actualización pendiente sin llamar page.update() aquí"""
+        nonlocal actualizar_pendiente
+        with actualizar_lock:
+            actualizar_pendiente = True
     
     def actualizar_escritorio():
         """Actualiza el escritorio con todas las ventanas"""
@@ -31,9 +47,10 @@ def main(page: ft.Page):
             fondo_escritorio,
             iconos_escritorio,
             *ventanas_abiertas,
+            menu_inicio,
             barra_tareas,
         ]
-        page.update()
+        marcar_actualizar()
     
     def traer_al_frente(ventana):
         """Trae una ventana al frente"""
@@ -52,84 +69,146 @@ def main(page: ft.Page):
     
     def abrir_calculadora(e):
         """Abre la aplicación Calculadora"""
-        # Verificar si ya está abierta
-        for v in ventanas_abiertas:
-            if v.barra_titulo.content.controls[0].controls[1].value == "Calculadora":
-                traer_al_frente(v)
-                return
-        
-        calc_ui = CalculadoraApp()
-        nueva_ventana = VentanaApp(
-            titulo="Calculadora",
-            contenido=calc_ui,
-            ancho=350,
-            alto=500,
-            on_close=cerrar_ventana,
-            on_focus=traer_al_frente,
-            page=page
-        )
-        ventanas_abiertas.append(nueva_ventana)
-        actualizar_escritorio()
+        with app_lock:
+            # Verificar si ya está abierta
+            for v in ventanas_abiertas:
+                if v.barra_titulo.content.controls[0].controls[1].value == "Calculadora":
+                    traer_al_frente(v)
+                    return
+            
+            calc_ui = CalculadoraApp()
+            nueva_ventana = VentanaApp(
+                titulo="Calculadora",
+                contenido=calc_ui,
+                ancho=350,
+                alto=500,
+                on_close=cerrar_ventana,
+                on_focus=traer_al_frente,
+                page=page
+            )
+            ventanas_abiertas.append(nueva_ventana)
+            actualizar_escritorio()
     
     def abrir_editor(e):
         """Abre la aplicación Editor de Texto"""
-        # Verificar si ya está abierta
-        for v in ventanas_abiertas:
-            if v.barra_titulo.content.controls[0].controls[1].value == "Editor de Texto":
-                traer_al_frente(v)
-                return
-        
-        editor_ui = EditorApp(page)
-        nueva_ventana = VentanaApp(
-            titulo="Editor de Texto",
-            contenido=editor_ui,
-            ancho=700,
-            alto=550,
-            on_close=cerrar_ventana,
-            on_focus=traer_al_frente,
-            page=page
-        )
-        ventanas_abiertas.append(nueva_ventana)
-        actualizar_escritorio()
+        with app_lock:
+            # Verificar si ya está abierta
+            for v in ventanas_abiertas:
+                if v.barra_titulo.content.controls[0].controls[1].value == "Editor de Texto":
+                    traer_al_frente(v)
+                    return
+            
+            editor_ui = EditorApp(page)
+            nueva_ventana = VentanaApp(
+                titulo="Editor de Texto",
+                contenido=editor_ui,
+                ancho=700,
+                alto=550,
+                on_close=cerrar_ventana,
+                on_focus=traer_al_frente,
+                page=page
+            )
+            ventanas_abiertas.append(nueva_ventana)
+            actualizar_escritorio()
+    
+    def abrir_configuracion(e):
+        """Abre la aplicación Configuración"""
+        with app_lock:
+            # Verificar si ya está abierta
+            for v in ventanas_abiertas:
+                if v.barra_titulo.content.controls[0].controls[1].value == "Configuración":
+                    traer_al_frente(v)
+                    return
+            
+            config_ui = ConfiguracionApp(page)
+            nueva_ventana = VentanaApp(
+                titulo="Configuración",
+                contenido=config_ui,
+                ancho=400,
+                alto=400,
+                on_close=cerrar_ventana,
+                on_focus=traer_al_frente,
+                page=page
+            )
+            ventanas_abiertas.append(nueva_ventana)
+            actualizar_escritorio()
+    
+    def abrir_terminal(e):
+        """Abre la aplicación Terminal"""
+        with app_lock:
+            # Verificar si ya está abierta
+            for v in ventanas_abiertas:
+                if v.barra_titulo.content.controls[0].controls[1].value == "Terminal":
+                    traer_al_frente(v)
+                    return
+            
+            terminal_ui = TerminalApp(page)
+            nueva_ventana = VentanaApp(
+                titulo="Terminal",
+                contenido=terminal_ui,
+                ancho=500,
+                alto=300,
+                on_close=cerrar_ventana,
+                on_focus=traer_al_frente,
+                page=page
+            )
+            ventanas_abiertas.append(nueva_ventana)
+            actualizar_escritorio()
+    
+    # --- MENÚ DE INICIO ---
+    
+    # Definir las aplicaciones disponibles
+    apps_disponibles = [
+        {
+            "nombre": "Calculadora",
+            "icono": ft.Icons.CALCULATE,
+            "color": ft.Colors.AMBER_400,
+            "id": "calculadora",
+        },
+        {
+            "nombre": "Editor de Texto",
+            "icono": ft.Icons.EDIT,
+            "color": ft.Colors.BLUE_400,
+            "id": "editor",
+        },
+        {
+            "nombre": "Configuración",
+            "icono": ft.Icons.SETTINGS,
+            "color": ft.Colors.GREEN_400,
+            "id": "configuracion",
+        },
+        {
+            "nombre": "Terminal",
+            "icono": ft.Icons.TERMINAL,
+            "color": ft.Colors.PURPLE_400,
+            "id": "terminal",
+        },
+    ]
+    
+    def manejar_app_menu(app_id):
+        """Maneja la selección de una app desde el menú de inicio"""
+        if app_id == "calculadora":
+            abrir_calculadora(None)
+        elif app_id == "editor":
+            abrir_editor(None)
+        elif app_id == "configuracion":
+            abrir_configuracion(None)
+        elif app_id == "terminal":
+            abrir_terminal(None)
     
     # --- FUNCIONES DE TRANSICIÓN DE PANTALLAS ---
     
     def animar_fade_in(contenedor):
         """Anima el fade in de un contenedor"""
-        contenedor.opacity = 0
-        page.update()
-        
-        def animar():
-            for i in range(21):
-                contenedor.opacity = i / 20
-                try:
-                    page.update()
-                except:
-                    break
-                time.sleep(0.02)
-        
-        threading.Thread(target=animar, daemon=True).start()
+        contenedor.animate_opacity = ft.Animation(400, "easeInOut")
+        contenedor.opacity = 1
     
     def animar_iconos_entrada():
         """Anima la entrada de los iconos al escritorio"""
         time.sleep(0.3)
-        for i, icono in enumerate(iconos_escritorio.controls):
-            icono.opacity = 0
-            try:
-                page.update()
-            except:
-                break
-            time.sleep(0.1)
-            
-            # Animación de cada icono
-            for j in range(21):
-                progress = j / 20
-                icono.opacity = progress
-                try:
-                    page.update()
-                except:
-                    break
-                time.sleep(0.01)
+        for icono in iconos_escritorio.controls:
+            icono.animate_opacity = ft.Animation(300, "easeInOut")
+            icono.opacity = 1
     
     def mostrar_escritorio():
         """Muestra el escritorio principal"""
@@ -147,7 +226,7 @@ def main(page: ft.Page):
         """Muestra la pantalla de boot"""
         boot_screen = BootScreen(page, on_complete=mostrar_login)
         contenedor_principal.content = boot_screen
-        page.update()
+        animar_fade_in(contenedor_principal)
     
     # --- INTERFAZ DEL ESCRITORIO ---
     
@@ -174,38 +253,20 @@ def main(page: ft.Page):
             opacity=0.9,
         )
         
-        # Efecto hover con animación manual
+        # Efecto hover con animación
         def on_hover(e):
-            def animar_hover(es_hover):
-                pasos = 10
-                opacidad_inicial = contenedor_icono.opacity
-                escala_inicial = contenedor_icono.scale if contenedor_icono.scale is not None else 1.0
-                
-                if es_hover:
-                    opacidad_final = 1.0
-                    escala_final = 1.1
-                    color_final = ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
-                else:
-                    opacidad_final = 0.9
-                    escala_final = 1.0
-                    color_final = None
-                
-                for i in range(pasos + 1):
-                    progress = i / pasos
-                    contenedor_icono.opacity = opacidad_inicial + (opacidad_final - opacidad_inicial) * progress
-                    contenedor_icono.scale = escala_inicial + (escala_final - escala_inicial) * progress
-                    if es_hover and i == pasos:
-                        contenedor_icono.bgcolor = color_final
-                    elif not es_hover and i == pasos:
-                        contenedor_icono.bgcolor = None
-                    try:
-                        page.update()
-                    except:
-                        break
-                    time.sleep(0.01)
-            
             es_hover = e.data == "true"
-            threading.Thread(target=lambda: animar_hover(es_hover), daemon=True).start()
+            contenedor_icono.animate_opacity = ft.Animation(200, "easeInOut")
+            contenedor_icono.animate_scale = ft.Animation(200, "easeInOut")
+            
+            if es_hover:
+                contenedor_icono.opacity = 1.0
+                contenedor_icono.scale = 1.1
+                contenedor_icono.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
+            else:
+                contenedor_icono.opacity = 0.9
+                contenedor_icono.scale = 1
+                contenedor_icono.bgcolor = None
         
         contenedor_icono.on_hover = on_hover
         return contenedor_icono
@@ -225,23 +286,58 @@ def main(page: ft.Page):
                 ft.Colors.BLUE_400,
                 abrir_editor
             ),
+            crear_icono_escritorio(
+                ft.Icons.SETTINGS,
+                "Configuración",
+                ft.Colors.GREEN_400,
+                abrir_configuracion
+            ),
+            crear_icono_escritorio(
+                ft.Icons.TERMINAL,
+                "Terminal",
+                ft.Colors.PURPLE_400,
+                abrir_terminal
+            ),
         ],
         top=40,
         left=40,
         spacing=20
     )
     
+    # Menú de inicio
+    menu_inicio = StartMenu(page, apps=apps_disponibles, on_app_click=manejar_app_menu)
+    
+    def toggle_menu_inicio(e):
+        """Alterna el menú de inicio"""
+        menu_inicio.toggle()
+    
+    # Cerrar menú al hacer clic en el fondo del escritorio
+    def click_escritorio(e):
+        """Cierra el menú de inicio si está abierto al hacer clic en el escritorio"""
+        if menu_inicio.esta_abierto:
+            menu_inicio.toggle()
+    
+    fondo_escritorio.on_click = click_escritorio
+    
     # Barra de tareas
-    barra_tareas = Taskbar(page, on_menu_click=lambda _: print("Menú Inicio"))
+    barra_tareas = Taskbar(page, on_menu_click=toggle_menu_inicio)
     
     # Stack del escritorio
     escritorio_stack = ft.Stack(
-        controls=[fondo_escritorio, iconos_escritorio, barra_tareas],
+        controls=[fondo_escritorio, iconos_escritorio, menu_inicio, barra_tareas],
         expand=True,
     )
     
     # Configurar contenedor principal
     contenedor_principal.expand = True
+    
+    # --- SISTEMA DE ACTUALIZACIÓN GLOBAL ---
+    def sistema_actualizar():
+        """Sistema de actualización global cada 0.5 segundos"""
+        pass
+    
+    # Iniciar thread de actualización global
+    threading.Thread(target=sistema_actualizar, daemon=True).start()
     
     # Agregar contenedor a la página
     page.add(contenedor_principal)

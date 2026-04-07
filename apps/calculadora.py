@@ -135,7 +135,6 @@ class CalculadoraApp(ft.Container):
                 self.display.value = valor
             else:
                 self.display.value += valor
-        self.display.update()
     
     def _operacion(self, op):
         """Maneja las operaciones aritméticas."""
@@ -171,7 +170,6 @@ class CalculadoraApp(ft.Container):
                 if num2 == 0:
                     self.display.value = "Error: Div/0"
                     self._resetear_estado()
-                    self.display.update()
                     return
                 resultado = num1 / num2
             else:
@@ -190,14 +188,11 @@ class CalculadoraApp(ft.Container):
         except Exception as e:
             self.display.value = "Error"
             self._resetear_estado()
-        
-        self.display.update()
     
     def _limpiar(self, _):
         """Limpia el display y resetea el estado."""
         self.display.value = "0"
         self._resetear_estado()
-        self.display.update()
     
     def _resetear_estado(self):
         """Resetea las variables de estado."""

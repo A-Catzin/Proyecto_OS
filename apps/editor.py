@@ -71,44 +71,35 @@ class EditorApp(ft.Container):
     def limpiar_texto(self, e):
         """Limpia el contenido del editor"""
         self.campo_texto.value = ""
-        self._page.update()
         
-        # Mostrar notificación
-        self._page.snack_bar = ft.SnackBar(
+        # Mostrar notificación sin actualizar página
+        snack = ft.SnackBar(
             content=ft.Text("Documento nuevo creado"),
             bgcolor=ft.Colors.BLUE_700,
         )
-        self._page.snack_bar.open = True
-        self._page.update()
+        self._page.overlay.append(snack)
+        snack.open = True
     
     def guardar_texto(self, e):
         """Simula el guardado del texto"""
         if self.campo_texto.value and self.campo_texto.value.strip():
-            # Mostrar diálogo de confirmación
-            dialogo = ft.AlertDialog(
-                title=ft.Text("Guardar archivo"),
-                content=ft.Text(
-                    f"Archivo guardado exitosamente (simulado)\n\n"
-                    f"Caracteres: {len(self.campo_texto.value)}\n"
-                    f"Palabras: {len(self.campo_texto.value.split())}"
-                ),
-                actions=[
-                    ft.TextButton("Aceptar", on_click=lambda e: self.cerrar_dialogo(dialogo)),
-                ],
+            # Mostrar mensaje de éxito
+            contenido = (
+                f"Archivo guardado exitosamente (simulado)\n\n"
+                f"Caracteres: {len(self.campo_texto.value)}\n"
+                f"Palabras: {len(self.campo_texto.value.split())}"
             )
-            self._page.dialog = dialogo
-            dialogo.open = True
-            self._page.update()
+            snack = ft.SnackBar(
+                content=ft.Text(contenido),
+                bgcolor=ft.Colors.GREEN_700,
+            )
+            self._page.overlay.append(snack)
+            snack.open = True
         else:
             # Mostrar advertencia si no hay texto
-            self._page.snack_bar = ft.SnackBar(
+            snack = ft.SnackBar(
                 content=ft.Text("No hay contenido para guardar"),
                 bgcolor=ft.Colors.ORANGE_700,
             )
-            self._page.snack_bar.open = True
-            self._page.update()
-    
-    def cerrar_dialogo(self, dialogo):
-        """Cierra el diálogo"""
-        dialogo.open = False
-        self._page.update()
+            self._page.overlay.append(snack)
+            snack.open = True

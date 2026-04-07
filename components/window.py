@@ -7,7 +7,7 @@ class VentanaApp(ft.Container):
     """
     Clase base para ventanas en Zenith OS (Flet v0.80.5).
     Hereda de ft.Container para permitir posicionamiento en ft.Stack.
-    Incluye animaciones de apertura y cierre.
+    Incluye animaciones de apertura, cierre, drag y pantalla completa.
     """
 
     def __init__(self, titulo, contenido, ancho=600, alto=400, on_close=None, on_focus=None, page=None):
@@ -17,6 +17,18 @@ class VentanaApp(ft.Container):
         self._page = page
         self._ancho_original = ancho
         self._alto_original = alto
+        
+        # Estado de pantalla completa
+        self._is_fullscreen = False
+
+        # Botón de pantalla completa
+        self.boton_fullscreen = ft.IconButton(
+            icon=ft.Icons.FULLSCREEN,
+            icon_color=ft.Colors.WHITE,
+            icon_size=18,
+            on_click=self._toggle_fullscreen,
+            tooltip="Pantalla completa",
+        )
 
         # Barra de título de la ventana
         self.barra_titulo = ft.Container(
@@ -29,12 +41,18 @@ class VentanaApp(ft.Container):
                         ],
                         spacing=10,
                     ),
-                    ft.IconButton(
-                        icon=ft.Icons.CLOSE,
-                        icon_color=ft.Colors.WHITE,
-                        icon_size=18,
-                        on_click=self._cerrar,
-                        tooltip="Cerrar",
+                    ft.Row(
+                        [
+                            self.boton_fullscreen,
+                            ft.IconButton(
+                                icon=ft.Icons.CLOSE,
+                                icon_color=ft.Colors.WHITE,
+                                icon_size=18,
+                                on_click=self._cerrar,
+                                tooltip="Cerrar",
+                            ),
+                        ],
+                        spacing=5,
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -79,41 +97,47 @@ class VentanaApp(ft.Container):
 
     def _animar_apertura(self):
         """Anima la apertura de la ventana con fade in y scale"""
-        def animar():
-            for i in range(21):
-                progress = i / 20
-                self.opacity = progress
-                self.scale = 0.8 + (progress * 0.2)  # De 0.8 a 1.0
-                if self._page:
-                    try:
-                        self._page.update()
-                    except:
-                        break
-                time.sleep(0.01)
-        
-        threading.Thread(target=animar, daemon=True).start()
+        self.animate_opacity = ft.Animation(400, "easeInOut")
+        self.animate_scale = ft.Animation(400, "easeInOut")
+        self.opacity = 1
+        self.scale = 1
 
     def _cerrar(self, e):
         """Cierra la ventana con animación"""
-        def animar_cierre():
-            for i in range(21):
-                progress = 1 - (i / 20)
-                self.opacity = progress
-                self.scale = 1.0 - (progress * 0.2)  # De 1.0 a 0.8
-                if self._page:
-                    try:
-                        self._page.update()
-                    except:
-                        break
-                time.sleep(0.01)
-            
-            # Llamar al callback después de la animación
+        self.animate_opacity = ft.Animation(200, "easeInOut")
+        self.animate_scale = ft.Animation(200, "easeInOut")
+        self.opacity = 0
+        self.scale = 0.8
+        
+        def hide_after_animation():
+            time.sleep(0.2)
             if self.on_close:
                 self.on_close(self)
         
-        threading.Thread(target=animar_cierre, daemon=True).start()
+        threading.Thread(target=hide_after_animation, daemon=True).start()
 
     def _focus(self, e):
         """Trae la ventana al frente cuando se hace clic"""
         if self.on_focus:
             self.on_focus(self)
+
+    def _toggle_fullscreen(self, e):
+        """Alterna entre pantalla completa y tamaño normal"""
+        if not self._is_fullscreen:
+            # Ir a pantalla completa
+            self.left = 0
+            self.top = 0
+            self.width = self._page.window.width
+            self.height = self._page.window.height
+            self.border_radius = 0
+            self.boton_fullscreen.icon = ft.Icons.FULLSCREEN_EXIT
+            self._is_fullscreen = True
+        else:
+            # Volver a tamaño normal
+            self.width = self._ancho_original
+            self.height = self._alto_original
+            self.left = 150
+            self.top = 100
+            self.border_radius = 10
+            self.boton_fullscreen.icon = ft.Icons.FULLSCREEN
+            self._is_fullscreen = False

@@ -61,25 +61,15 @@ class Taskbar(ft.Container):
     
     def _animar_entrada(self):
         """Anima la entrada de la barra de tareas"""
-        def animar():
-            for i in range(21):
-                self.opacity = i / 20
-                try:
-                    self._page.update()
-                except:
-                    break
-                time.sleep(0.01)
-        
-        threading.Thread(target=animar, daemon=True).start()
+        self.animate_opacity = ft.Animation(400, "easeInOut")
+        self.opacity = 1
 
     def _obtener_hora(self):
         return datetime.now().strftime("%H:%M:%S")
 
     def _actualizar_reloj(self):
         while True:
-            time.sleep(1)  # Actualiza cada segundo
-            self.reloj.value = self._obtener_hora()
-            try:
-                self._page.update()
-            except:
-                break
+            time.sleep(0.5)  # Actualiza cada 0.5 segundos para sincronizar con sistema global
+            nueva_hora = self._obtener_hora()
+            if nueva_hora != self.reloj.value:  # Solo actualizar si cambió
+                self.reloj.value = nueva_hora

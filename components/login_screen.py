@@ -169,7 +169,6 @@ class LoginScreen(ft.Container):
         self.boton_login.disabled = True
         self.indicador_carga.visible = True
         self.mensaje_error.visible = False
-        self._page.update()
         
         # Simular verificación (en un sistema real, esto sería una llamada a API/BD)
         def verificar_login():
@@ -184,7 +183,6 @@ class LoginScreen(ft.Container):
                 self.boton_login.disabled = False
                 self.indicador_carga.visible = False
                 self._mostrar_error("Usuario o contraseña incorrectos")
-                self._page.update()
         
         import threading
         threading.Thread(target=verificar_login, daemon=True).start()
@@ -193,5 +191,4 @@ class LoginScreen(ft.Container):
         """Muestra un mensaje de error"""
         self.mensaje_error.value = mensaje
         self.mensaje_error.visible = True
-        self._page.update()
 
