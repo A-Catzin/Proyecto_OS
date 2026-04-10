@@ -97,7 +97,7 @@ class BootScreen(ft.Container):
         """Inicia la animación del proceso de boot"""
         def animar_boot():
             for i in range(101):
-                time.sleep(0.03)  # Controla la velocidad del boot
+                time.sleep(0.02)  # Controla la velocidad del boot
                 self.progreso = i / 100
                 self.barra_progreso.value = self.progreso
                 
@@ -107,7 +107,7 @@ class BootScreen(ft.Container):
                     self.indice_mensaje += 1
             
             # Esperar un momento antes de completar
-            time.sleep(0.5)
+            time.sleep(0.01)
             if self.on_complete:
                 self.on_complete()
         

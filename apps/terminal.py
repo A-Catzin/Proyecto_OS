@@ -56,9 +56,7 @@ class TerminalApp(ft.Container):
             if self.os == "Windows":
                 subprocess.Popen(["cmd.exe"])
             elif self.os == "Linux":
-                subprocess.Popen(["x-terminal-emulator"])
-            elif self.os == "Darwin":  # macOS
-                subprocess.Popen(["open", "-a", "Terminal"])
+                subprocess.Popen(["Konsole"])
             else:
                 raise Exception("Sistema operativo no soportado")
 

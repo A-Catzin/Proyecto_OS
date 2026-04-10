@@ -13,8 +13,8 @@ class LoginScreen(ft.Container):
         self.on_login_success = on_login_success
         
         # Credenciales por defecto (en un sistema real, esto vendría de una base de datos)
-        self.usuario_valido = "admin"
-        self.password_valido = "zenith"
+        self.usuario_valido = "angel"
+        self.password_valido = "1234"
         
         # Campo de usuario
         self.campo_usuario = ft.TextField(
